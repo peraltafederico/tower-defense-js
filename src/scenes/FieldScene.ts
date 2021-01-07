@@ -2,6 +2,8 @@ import Phaser from 'phaser'
 import { TILE_HEIGHT, TILE_WIDTH } from '../config/constants'
 import Player from '../models/Player'
 
+// TODO: Add lint :(
+
 export default class HelloWorldScene extends Phaser.Scene {
     map: Phaser.Tilemaps.Tilemap
     tiles: Phaser.Tilemaps.Tileset
@@ -52,7 +54,19 @@ export default class HelloWorldScene extends Phaser.Scene {
             this.marker.setVisible(true)
 
             if (click) {
-                this.add.tileSprite(worldX + fieldTile.width / 2, worldY + fieldTile.height / 2, TILE_WIDTH, TILE_HEIGHT, this.player.pickedShip)
+                console.log(fieldTile.properties.sprite)
+                if (!fieldTile.properties.sprite) {
+                    fieldTile.properties.sprite = true
+
+                    const sprite = this.add.tileSprite(worldX + fieldTile.width / 2, worldY + fieldTile.height / 2, TILE_WIDTH, TILE_HEIGHT, this.player.pickedShip).setInteractive()
+
+                    sprite.on('pointerdown', function (pointer) {
+
+                        sprite.destroy()
+
+                    });
+                }
+
             }
         }
 
