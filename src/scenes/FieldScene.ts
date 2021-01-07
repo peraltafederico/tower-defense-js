@@ -1,4 +1,6 @@
 import Phaser from 'phaser'
+import { TILE_HEIGHT, TILE_WIDTH } from '../config/constants'
+import Player from '../models/Player'
 
 export default class HelloWorldScene extends Phaser.Scene {
     map: Phaser.Tilemaps.Tilemap
@@ -6,6 +8,7 @@ export default class HelloWorldScene extends Phaser.Scene {
     marker: Phaser.GameObjects.Graphics
     field: Phaser.Tilemaps.StaticTilemapLayer
     menu: Phaser.Tilemaps.StaticTilemapLayer
+    player: Player
 
     constructor() {
         super('hello-world')
@@ -14,6 +17,9 @@ export default class HelloWorldScene extends Phaser.Scene {
     preload() {
         this.load.image('tileset', 'assets/gridtiles.png');
         this.load.tilemapTiledJSON('map', 'assets/map.json');
+        this.load.image('ship_1', 'assets/ship_1.png');
+        this.load.image('ship_2', 'assets/ship_2.png');
+        this.load.image('ship_3', 'assets/ship_3.png');
         this.load.image('ship_4', 'assets/ship_4.png');
     }
 
@@ -22,10 +28,6 @@ export default class HelloWorldScene extends Phaser.Scene {
 
         this.tiles = this.map.addTilesetImage('tiles', 'tileset');
 
-        const a = this.map.getObjectLayer('gun_1');
-
-        console.log(a)
-
         this.field = this.map.createStaticLayer('field', this.tiles, 0, 0);
         this.menu = this.map.createStaticLayer('menu', this.tiles, 0, 0);
 
@@ -33,24 +35,37 @@ export default class HelloWorldScene extends Phaser.Scene {
         this.marker.lineStyle(3, 0xffffff, 1);
         this.marker.strokeRect(0, 0, this.map.tileWidth, this.map.tileHeight);
         this.marker.setVisible(false)
+
+        this.player = new Player()
     }
 
     update() {
         const fieldTile = this.field.getTileAtWorldXY(this.input.activePointer.x, this.input.activePointer.y)
         const menuTile = this.menu.getTileAtWorldXY(this.input.activePointer.x, this.input.activePointer.y)
+        const click = this.input.activePointer.isDown
 
         if (fieldTile && fieldTile.properties.collide !== false) {
-            if (this.input.activePointer.isDown) {
-                this.add.tileSprite(this.map.tileToWorldX(fieldTile.x) + fieldTile.width / 2, this.map.tileToWorldY(fieldTile.y) + fieldTile.height / 2, 32, 32, 'ship_4')
-            }
+            const worldX = this.map.tileToWorldX(fieldTile.x)
+            const worldY = this.map.tileToWorldY(fieldTile.y)
 
-            this.marker.setPosition(this.map.tileToWorldX(fieldTile.x), this.map.tileToWorldX(fieldTile.y))
+            this.marker.setPosition(worldX, worldY)
             this.marker.setVisible(true)
+
+            if (click) {
+                this.add.tileSprite(worldX + fieldTile.width / 2, worldY + fieldTile.height / 2, TILE_WIDTH, TILE_HEIGHT, this.player.pickedShip)
+            }
         }
 
-        if (menuTile) {
-            this.marker.setPosition(this.map.tileToWorldX(menuTile.x), this.map.tileToWorldY(menuTile.y))
+        if (menuTile && menuTile.properties.ship) {
+            const worldX = this.map.tileToWorldX(menuTile.x)
+            const worldY = this.map.tileToWorldY(menuTile.y)
+
+            this.marker.setPosition(worldX, worldY)
             this.marker.setVisible(true)
+
+            if (click) {
+                this.player.pickShip(menuTile.properties.ship)
+            }
         }
     }
 }
