@@ -1,12 +1,17 @@
-import { SHIPS } from "../config/constants";
+import { SHIPS } from '../config/constants'
 
 export default class Player {
-    pickedShip: SHIPS
+  pickedShip: SHIPS | null
 
-    constructor() { }
+  constructor() {
+    this.pickedShip = null
+  }
 
-    pickShip(ship: SHIPS) {
-        this.pickedShip = ship
-    }
+  pickShip(ship: SHIPS) {
+    this.pickedShip = ship
+  }
 
+  unpickShip() {
+    this.pickedShip = null
+  }
 }
