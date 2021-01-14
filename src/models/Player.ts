@@ -1,13 +1,11 @@
-import { SHIPS } from '../config/constants'
-
 export default class Player {
-  pickedShip: SHIPS | null
+  pickedShip: Phaser.Tilemaps.Tile | null
 
   constructor() {
     this.pickedShip = null
   }
 
-  pickShip(ship: SHIPS) {
+  pickShip(ship: Phaser.Tilemaps.Tile) {
     this.pickedShip = ship
   }
 

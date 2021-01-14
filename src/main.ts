@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import FieldScene from './scenes/FieldScene'
+import FieldScene from './scenes/GameScene'
 
 const config = {
   type: Phaser.AUTO,

@@ -3,14 +3,14 @@ import EasyStar from 'easystarjs'
 export default class Ship {
   scene: Phaser.Scene
   sprite: Phaser.GameObjects.Sprite
-  field: Phaser.Tilemaps.StaticTilemapLayer
+  field: Phaser.Tilemaps.DynamicTilemapLayer
   finder: EasyStar.js
   map: Phaser.Tilemaps.Tilemap
 
   constructor(
     scene: Phaser.Scene,
     spriteName: string,
-    field: Phaser.Tilemaps.StaticTilemapLayer,
+    field: Phaser.Tilemaps.DynamicTilemapLayer,
     finder: EasyStar.js,
     map: Phaser.Tilemaps.Tilemap
   ) {
@@ -18,7 +18,7 @@ export default class Ship {
     this.field = field
     this.finder = finder
     this.map = map
-    this.sprite = this.scene.add.sprite(64, 0, spriteName, 0)
+    this.sprite = this.scene.add.sprite(32 * 8, 0, spriteName, 0)
 
     this.sprite.setOrigin(0, 0)
     this.arriveEnemyField()
@@ -27,17 +27,13 @@ export default class Ship {
   arriveEnemyField() {
     const fromX = Math.floor(this.sprite.x / 32)
     const fromY = Math.floor(this.sprite.y / 32)
-    const toX = 14
+    const toX = 8
     const toY = 19
-    console.log(
-      'going from (' + fromX + ',' + fromY + ') to (' + toX + ',' + toY + ')'
-    )
 
     this.finder.findPath(fromX, fromY, toX, toY, path => {
       if (path === null) {
         console.warn('Path was not found.')
       } else {
-        console.log(path)
         this.move(path)
       }
     })

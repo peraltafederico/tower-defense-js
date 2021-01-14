@@ -1,5 +1,5 @@
-export enum SHIPS {
-    SHIP_1 = 'SHIP_1'
+export const TILES = {
+  BLANK_TILE: 42,
 }
 
 export const TILE_HEIGHT = 32

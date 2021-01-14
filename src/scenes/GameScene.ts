@@ -3,13 +3,14 @@ import Phaser from 'phaser'
 import Player from '../models/Player'
 import Ship from '../models/Ship'
 import EasyStar from 'easystarjs'
+import { TILES } from '../config/constants'
 
 export default class HelloWorldScene extends Phaser.Scene {
   map: Phaser.Tilemaps.Tilemap
   tiles: Phaser.Tilemaps.Tileset
   marker: Phaser.GameObjects.Graphics
-  field: Phaser.Tilemaps.StaticTilemapLayer
   menu: Phaser.Tilemaps.StaticTilemapLayer
+  field: Phaser.Tilemaps.DynamicTilemapLayer
   player: Player
   ship: Ship
   finder: EasyStar.js
@@ -22,9 +23,6 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.load.image('tileset', 'assets/gridtiles.png')
     this.load.tilemapTiledJSON('map', 'assets/map.json')
     this.load.image('ship_1', 'assets/ship_1.png')
-    this.load.image('ship_2', 'assets/ship_2.png')
-    this.load.image('ship_3', 'assets/ship_3.png')
-    this.load.image('ship_4', 'assets/ship_4.png')
   }
 
   create() {
@@ -32,11 +30,10 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     this.tiles = this.map.addTilesetImage('tiles', 'tileset')
 
-    this.field = this.map.createStaticLayer('field', this.tiles, 0, 0)
+    this.field = this.map.createDynamicLayer('field', this.tiles, 0, 0)
     this.menu = this.map.createStaticLayer('menu', this.tiles, 0, 0)
 
     this.field.setCollisionByProperty({ collides: true })
-    // this.matter.world.convertTilemapLayer(this.field)
 
     this.marker = this.add.graphics()
     this.marker.lineStyle(3, 0xffffff, 1)
@@ -47,10 +44,9 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     this.configPathFinding()
 
-    this.ship = new Ship(this, 'ship_1', this.field, this.finder, this.map)
     setInterval(() => {
       this.ship = new Ship(this, 'ship_1', this.field, this.finder, this.map)
-    }, 1500)
+    }, 3000)
   }
 
   update() {
@@ -58,55 +54,73 @@ export default class HelloWorldScene extends Phaser.Scene {
       this.input.activePointer.x,
       this.input.activePointer.y
     )
+
     const menuTile = this.menu.getTileAtWorldXY(
       this.input.activePointer.x,
       this.input.activePointer.y
     )
+
     const click = this.input.activePointer.isDown
 
-    if (fieldTile && !fieldTile.properties.collides) {
-      const worldX = this.map.tileToWorldX(fieldTile.x)
-      const worldY = this.map.tileToWorldY(fieldTile.y)
+    if (
+      fieldTile &&
+      (!fieldTile.properties.collides || fieldTile.properties.ship)
+    ) {
+      const { x: worldX, y: worldY } = this.map.tileToWorldXY(
+        fieldTile.x,
+        fieldTile.y
+      )
 
-      this.marker.setPosition(worldX, worldY)
-      this.marker.setVisible(true)
+      this.showMarker(worldX, worldY)
 
-      if (click && !fieldTile.properties.isShip) {
-        if (this.player.pickedShip) {
-          fieldTile.properties.isShip = true
+      if (click) {
+        const removeShipTile =
+          fieldTile.properties.ship && !this.player.pickedShip
 
-          const sprite = this.add
-            .sprite(
-              worldX + fieldTile.width / 2,
-              worldY + fieldTile.height / 2,
-              this.player.pickedShip
-            )
-            .setInteractive()
+        const addShipTile = !fieldTile.properties.ship && this.player.pickedShip
 
-          sprite.on('pointerdown', function () {
-            fieldTile.properties.isShip = false
+        if (removeShipTile) {
+          this.field.putTileAt(TILES.BLANK_TILE, fieldTile.x, fieldTile.y)
+        }
 
-            sprite.destroy()
-          })
+        if (addShipTile) {
+          this.field.putTileAt(
+            this.player.pickedShip,
+            fieldTile.x,
+            fieldTile.y,
+            true
+          )
+        }
+
+        if (removeShipTile || addShipTile) {
+          this.configPathFinding()
         }
       }
     }
 
     if (menuTile) {
-      const worldX = this.map.tileToWorldX(menuTile.x)
-      const worldY = this.map.tileToWorldY(menuTile.y)
+      const { x: worldX, y: worldY } = this.map.tileToWorldXY(
+        menuTile.x,
+        menuTile.y
+      )
 
-      this.marker.setPosition(worldX, worldY)
-      this.marker.setVisible(true)
+      this.showMarker(worldX, worldY)
 
-      if (click && menuTile.properties.ship) {
-        this.player.pickShip(menuTile.properties.ship)
-      }
+      if (click) {
+        if (menuTile.properties.ship) {
+          this.player.pickShip(menuTile)
+        }
 
-      if (click && !menuTile.properties.ship) {
-        this.player.unpickShip()
+        if (!menuTile.properties.ship) {
+          this.player.unpickShip()
+        }
       }
     }
+  }
+
+  showMarker(x: number, y: number) {
+    this.marker.setPosition(x, y)
+    this.marker.setVisible(true)
   }
 
   configPathFinding() {
@@ -132,7 +146,6 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     // We need to list all the tile IDs that can be walked on. Let's iterate over all of them
     // and see what properties have been entered in Tiled.
-    console.log(properties)
     for (let i = tileset.firstgid - 1; i < this.tiles.total; i++) {
       // firstgid and total are fields from Tiled that indicate the range of IDs that the tiles can take in that tileset
       if (!properties.hasOwnProperty(i)) {
@@ -145,7 +158,7 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.finder.setAcceptableTiles(acceptableTiles)
   }
 
-  getTileID(x, y) {
+  getTileID(x: number, y: number) {
     const tile = this.field.getTileAt(x, y)
     return tile.index
   }
