@@ -49,13 +49,14 @@ export default class Ship {
       const ey = path[i + 1].y
       tweens.push({
         targets: this.sprite,
-        x: { value: ex * this.map.tileWidth, duration: 200 },
-        y: { value: ey * this.map.tileHeight, duration: 200 },
+        x: { value: ex * this.map.tileWidth, duration: 100 },
+        y: { value: ey * this.map.tileHeight, duration: 100 },
       })
     }
 
     this.scene.tweens.timeline({
       tweens: tweens,
+      onComplete: () => this.sprite.destroy(),
     })
   }
 }

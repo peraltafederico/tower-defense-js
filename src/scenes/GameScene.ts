@@ -12,7 +12,6 @@ export default class HelloWorldScene extends Phaser.Scene {
   menu: Phaser.Tilemaps.StaticTilemapLayer
   field: Phaser.Tilemaps.DynamicTilemapLayer
   player: Player
-  ship: Ship
   finder: EasyStar.js
 
   constructor() {
@@ -44,8 +43,10 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     this.configPathFinding()
 
+    this.createShip()
+
     setInterval(() => {
-      this.ship = new Ship(this, 'ship_1', this.field, this.finder, this.map)
+      this.createShip()
     }, 3000)
   }
 
@@ -116,6 +117,10 @@ export default class HelloWorldScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  createShip() {
+    return new Ship(this, 'ship_1', this.field, this.finder, this.map)
   }
 
   showMarker(x: number, y: number) {
