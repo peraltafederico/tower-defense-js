@@ -24,6 +24,10 @@ export default class Ship {
     this.arriveEnemyField()
   }
 
+  getSprite() {
+    return this.sprite
+  }
+
   arriveEnemyField() {
     const fromX = Math.floor(this.sprite.x / 32)
     const fromY = Math.floor(this.sprite.y / 32)
@@ -49,8 +53,8 @@ export default class Ship {
       const ey = path[i + 1].y
       tweens.push({
         targets: this.sprite,
-        x: { value: ex * this.map.tileWidth, duration: 100 },
-        y: { value: ey * this.map.tileHeight, duration: 100 },
+        x: { value: ex * this.map.tileWidth, duration: 1000 },
+        y: { value: ey * this.map.tileHeight, duration: 1000 },
       })
     }
 

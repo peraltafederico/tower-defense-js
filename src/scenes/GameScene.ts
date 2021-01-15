@@ -4,6 +4,7 @@ import Player from '../models/Player'
 import Ship from '../models/Ship'
 import EasyStar from 'easystarjs'
 import { TILES } from '../config/constants'
+import Bullets from '../models/Bullets'
 
 export default class HelloWorldScene extends Phaser.Scene {
   map: Phaser.Tilemaps.Tilemap
@@ -13,6 +14,8 @@ export default class HelloWorldScene extends Phaser.Scene {
   field: Phaser.Tilemaps.DynamicTilemapLayer
   player: Player
   finder: EasyStar.js
+  bullets: Bullets
+  ship: Ship
 
   constructor() {
     super('hello-world')
@@ -22,6 +25,7 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.load.image('tileset', 'assets/gridtiles.png')
     this.load.tilemapTiledJSON('map', 'assets/map.json')
     this.load.image('ship_1', 'assets/ship_1.png')
+    this.load.image('bullet', 'assets/ship_1.png')
   }
 
   create() {
@@ -43,11 +47,15 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     this.configPathFinding()
 
-    this.createShip()
+    const a = this.createShip().getSprite()
+
+    this.bullets = new Bullets(this)
+    this.bullets.fireBullet(400, 500, a.x, a.y)
 
     setInterval(() => {
-      this.createShip()
-    }, 3000)
+      // this.createShip()
+      this.bullets.fireBullet(400, 500, a.x, a.y)
+    }, 1500)
   }
 
   update() {
