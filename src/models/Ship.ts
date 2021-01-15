@@ -1,8 +1,7 @@
 import EasyStar from 'easystarjs'
+import { TILE_WIDTH } from '../config/constants'
 
-export default class Ship {
-  scene: Phaser.Scene
-  sprite: Phaser.GameObjects.Sprite
+export default class Ship extends Phaser.GameObjects.Sprite {
   field: Phaser.Tilemaps.DynamicTilemapLayer
   finder: EasyStar.js
   map: Phaser.Tilemaps.Tilemap
@@ -14,23 +13,21 @@ export default class Ship {
     finder: EasyStar.js,
     map: Phaser.Tilemaps.Tilemap
   ) {
-    this.scene = scene
+    super(scene, TILE_WIDTH * 8, 0, spriteName)
+
     this.field = field
     this.finder = finder
     this.map = map
-    this.sprite = this.scene.add.sprite(32 * 8, 0, spriteName, 0)
 
-    this.sprite.setOrigin(0, 0)
+    this.scene.add.existing(this)
+
+    this.setOrigin(0, 0)
     this.arriveEnemyField()
   }
 
-  getSprite() {
-    return this.sprite
-  }
-
   arriveEnemyField() {
-    const fromX = Math.floor(this.sprite.x / 32)
-    const fromY = Math.floor(this.sprite.y / 32)
+    const fromX = Math.floor(this.x / TILE_WIDTH)
+    const fromY = Math.floor(this.y / TILE_WIDTH)
     const toX = 8
     const toY = 19
 
@@ -41,18 +38,17 @@ export default class Ship {
         this.move(path)
       }
     })
-    this.finder.calculate() // don't forget, otherwise nothing happens
+    this.finder.calculate()
   }
 
   move(path) {
-    // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
     const tweens = []
 
     for (let i = 0; i < path.length - 1; i++) {
       const ex = path[i + 1].x
       const ey = path[i + 1].y
       tweens.push({
-        targets: this.sprite,
+        targets: this,
         x: { value: ex * this.map.tileWidth, duration: 1000 },
         y: { value: ey * this.map.tileHeight, duration: 1000 },
       })
@@ -60,7 +56,7 @@ export default class Ship {
 
     this.scene.tweens.timeline({
       tweens: tweens,
-      onComplete: () => this.sprite.destroy(),
+      onComplete: () => this.destroy(),
     })
   }
 }

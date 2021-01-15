@@ -47,14 +47,14 @@ export default class HelloWorldScene extends Phaser.Scene {
 
     this.configPathFinding()
 
-    const a = this.createShip().getSprite()
+    const tarjet = this.createShip()
 
     this.bullets = new Bullets(this)
-    this.bullets.fireBullet(400, 500, a.x, a.y)
+    this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
 
     setInterval(() => {
       // this.createShip()
-      this.bullets.fireBullet(400, 500, a.x, a.y)
+      this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
     }, 1500)
   }
 
@@ -83,25 +83,21 @@ export default class HelloWorldScene extends Phaser.Scene {
       this.showMarker(worldX, worldY)
 
       if (click) {
-        const removeShipTile =
+        const removeTowerTile =
           fieldTile.properties.ship && !this.player.pickedShip
 
-        const addShipTile = !fieldTile.properties.ship && this.player.pickedShip
+        const addTowerTile =
+          !fieldTile.properties.ship && this.player.pickedShip
 
-        if (removeShipTile) {
+        if (removeTowerTile) {
           this.field.putTileAt(TILES.BLANK_TILE, fieldTile.x, fieldTile.y)
         }
 
-        if (addShipTile) {
-          this.field.putTileAt(
-            this.player.pickedShip,
-            fieldTile.x,
-            fieldTile.y,
-            true
-          )
+        if (addTowerTile) {
+          this.field.putTileAt(this.player.pickedShip, fieldTile.x, fieldTile.y)
         }
 
-        if (removeShipTile || addShipTile) {
+        if (removeTowerTile || addTowerTile) {
           this.configPathFinding()
         }
       }
