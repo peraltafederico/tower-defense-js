@@ -49,8 +49,8 @@ export default class Ship extends Phaser.GameObjects.Sprite {
       const ey = path[i + 1].y
       tweens.push({
         targets: this,
-        x: { value: ex * this.map.tileWidth, duration: 1000 },
-        y: { value: ey * this.map.tileHeight, duration: 1000 },
+        x: { value: ex * this.map.tileWidth, duration: 100 },
+        y: { value: ey * this.map.tileHeight, duration: 100 },
       })
     }
 

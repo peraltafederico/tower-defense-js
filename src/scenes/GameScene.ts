@@ -53,9 +53,9 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
 
     setInterval(() => {
-      // this.createShip()
+      this.createShip()
       this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
-    }, 1500)
+    }, 1000)
   }
 
   update() {
@@ -81,6 +81,8 @@ export default class HelloWorldScene extends Phaser.Scene {
       )
 
       this.showMarker(worldX, worldY)
+
+      console.log(fieldTile.properties)
 
       if (click) {
         const removeTowerTile =
