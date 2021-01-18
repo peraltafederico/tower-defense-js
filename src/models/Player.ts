@@ -1,15 +1,15 @@
 export default class Player {
-  pickedShip: Phaser.Tilemaps.Tile | null
+  pickedTower: string
 
   constructor() {
-    this.pickedShip = null
+    this.pickedTower = null
   }
 
-  pickShip(ship: Phaser.Tilemaps.Tile) {
-    this.pickedShip = ship
+  pickTower(tower: string) {
+    this.pickedTower = tower
   }
 
-  unpickShip() {
-    this.pickedShip = null
+  unpickTower() {
+    this.pickedTower = null
   }
 }

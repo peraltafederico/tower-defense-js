@@ -5,6 +5,7 @@ import Ship from '../models/Ship'
 import EasyStar from 'easystarjs'
 import { TILES } from '../config/constants'
 import Bullets from '../models/Bullets'
+import Tower from '../models/Tower'
 
 export default class HelloWorldScene extends Phaser.Scene {
   map: Phaser.Tilemaps.Tilemap
@@ -12,6 +13,7 @@ export default class HelloWorldScene extends Phaser.Scene {
   marker: Phaser.GameObjects.Graphics
   menu: Phaser.Tilemaps.StaticTilemapLayer
   field: Phaser.Tilemaps.DynamicTilemapLayer
+  towerPicker: Phaser.Tilemaps.ObjectLayer
   player: Player
   finder: EasyStar.js
   bullets: Bullets
@@ -26,6 +28,10 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.load.tilemapTiledJSON('map', 'assets/map.json')
     this.load.image('ship_1', 'assets/ship_1.png')
     this.load.image('bullet', 'assets/ship_1.png')
+    this.load.image('tower_1', 'assets/towers/tower_1.png')
+    this.load.image('tower_2', 'assets/towers/tower_2.png')
+    this.load.image('tower_3', 'assets/towers/tower_3.png')
+    this.load.image('tower_4', 'assets/towers/tower_4.png')
   }
 
   create() {
@@ -44,6 +50,22 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.marker.setVisible(false)
 
     this.player = new Player()
+
+    this.towerPicker = this.map.getObjectLayer('tower_picker')
+
+    this.towerPicker.objects.forEach(obj => {
+      const [tower] = this.map.createFromObjects('tower_picker', obj.name, {
+        key: obj.name,
+      })
+
+      tower
+        .setInteractive()
+        .on('pointerdown', () => this.player.pickTower(obj.name))
+    })
+
+    // this.field
+    //   .setInteractive()
+    //   .on('pointerdown', (...args) => console.log(...args))
 
     this.configPathFinding()
 
@@ -82,26 +104,28 @@ export default class HelloWorldScene extends Phaser.Scene {
 
       this.showMarker(worldX, worldY)
 
-      console.log(fieldTile.properties)
-
       if (click) {
-        const removeTowerTile =
-          fieldTile.properties.ship && !this.player.pickedShip
+        if (this.player.pickedTower) {
+          if (fieldTile.index !== TILES.COLLISION_TILE) {
+            this.field.putTileAt(TILES.COLLISION_TILE, fieldTile.x, fieldTile.y)
+            const newTower = new Tower(
+              this,
+              this.player.pickedTower,
+              fieldTile.pixelX,
+              fieldTile.pixelY
+            )
 
-        const addTowerTile =
-          !fieldTile.properties.ship && this.player.pickedShip
-
-        if (removeTowerTile) {
+            newTower.setInteractive().on('pointerdown', () => {
+              if (!this.player.pickedTower) {
+                newTower.destroy()
+              }
+            })
+          }
+        } else {
           this.field.putTileAt(TILES.BLANK_TILE, fieldTile.x, fieldTile.y)
         }
 
-        if (addTowerTile) {
-          this.field.putTileAt(this.player.pickedShip, fieldTile.x, fieldTile.y)
-        }
-
-        if (removeTowerTile || addTowerTile) {
-          this.configPathFinding()
-        }
+        this.configPathFinding()
       }
     }
 
@@ -114,12 +138,12 @@ export default class HelloWorldScene extends Phaser.Scene {
       this.showMarker(worldX, worldY)
 
       if (click) {
-        if (menuTile.properties.ship) {
-          this.player.pickShip(menuTile)
-        }
-
-        if (!menuTile.properties.ship) {
-          this.player.unpickShip()
+        if (
+          !this.towerPicker.objects.some(obj =>
+            menuTile.containsPoint(obj.x, obj.y)
+          )
+        ) {
+          this.player.unpickTower()
         }
       }
     }
