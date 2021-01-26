@@ -6,6 +6,7 @@ import EasyStar from 'easystarjs'
 import { TILES } from '../config/constants'
 import Bullets from '../models/Bullets'
 import Tower from '../models/Tower'
+import { remove } from 'lodash'
 
 export default class HelloWorldScene extends Phaser.Scene {
   map: Phaser.Tilemaps.Tilemap
@@ -17,7 +18,7 @@ export default class HelloWorldScene extends Phaser.Scene {
   player: Player
   finder: EasyStar.js
   bullets: Bullets
-  ship: Ship
+  enemyShips: Ship[]
 
   constructor() {
     super('hello-world')
@@ -50,6 +51,7 @@ export default class HelloWorldScene extends Phaser.Scene {
     this.marker.setVisible(false)
 
     this.player = new Player()
+    this.enemyShips = []
 
     this.towerPicker = this.map.getObjectLayer('tower_picker')
 
@@ -63,24 +65,15 @@ export default class HelloWorldScene extends Phaser.Scene {
         .on('pointerdown', () => this.player.pickTower(obj.name))
     })
 
-    // this.field
-    //   .setInteractive()
-    //   .on('pointerdown', (...args) => console.log(...args))
-
     this.configPathFinding()
-
-    const tarjet = this.createShip()
-
-    this.bullets = new Bullets(this)
-    this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
 
     setInterval(() => {
       this.createShip()
-      this.bullets.fireBullet(400, 500, tarjet.x, tarjet.y)
     }, 1000)
   }
 
   update() {
+    remove(this.enemyShips, i => i.visible === false)
     const fieldTile = this.field.getTileAtWorldXY(
       this.input.activePointer.x,
       this.input.activePointer.y
@@ -112,7 +105,8 @@ export default class HelloWorldScene extends Phaser.Scene {
               this,
               this.player.pickedTower,
               fieldTile.pixelX,
-              fieldTile.pixelY
+              fieldTile.pixelY,
+              this.enemyShips
             )
 
             newTower.setInteractive().on('pointerdown', () => {
@@ -138,11 +132,11 @@ export default class HelloWorldScene extends Phaser.Scene {
       this.showMarker(worldX, worldY)
 
       if (click) {
-        if (
-          !this.towerPicker.objects.some(obj =>
-            menuTile.containsPoint(obj.x, obj.y)
-          )
-        ) {
+        const clickOnEmptyTile = !this.towerPicker.objects.some(obj =>
+          menuTile.containsPoint(obj.x, obj.y)
+        )
+
+        if (clickOnEmptyTile) {
           this.player.unpickTower()
         }
       }
@@ -150,7 +144,11 @@ export default class HelloWorldScene extends Phaser.Scene {
   }
 
   createShip() {
-    return new Ship(this, 'ship_1', this.field, this.finder, this.map)
+    const newShip = new Ship(this, 'ship_1', this.finder, this.map)
+
+    this.enemyShips.push(newShip)
+
+    return newShip
   }
 
   showMarker(x: number, y: number) {

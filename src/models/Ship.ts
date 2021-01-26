@@ -1,25 +1,24 @@
 import EasyStar from 'easystarjs'
 import { TILE_WIDTH } from '../config/constants'
 
-export default class Ship extends Phaser.GameObjects.Sprite {
-  field: Phaser.Tilemaps.DynamicTilemapLayer
+export default class Ship extends Phaser.Physics.Arcade.Sprite {
   finder: EasyStar.js
   map: Phaser.Tilemaps.Tilemap
 
   constructor(
     scene: Phaser.Scene,
     spriteName: string,
-    field: Phaser.Tilemaps.DynamicTilemapLayer,
     finder: EasyStar.js,
-    map: Phaser.Tilemaps.Tilemap
+    map: Phaser.Tilemaps.Tilemap,
   ) {
     super(scene, TILE_WIDTH * 8, 0, spriteName)
 
-    this.field = field
     this.finder = finder
     this.map = map
 
     this.scene.add.existing(this)
+
+    this.scene.physics.add.existing(this)
 
     this.setOrigin(0, 0)
     this.arriveEnemyField()
@@ -33,6 +32,7 @@ export default class Ship extends Phaser.GameObjects.Sprite {
 
     this.finder.findPath(fromX, fromY, toX, toY, path => {
       if (path === null) {
+        this.destroy()
         console.warn('Path was not found.')
       } else {
         this.move(path)
@@ -49,14 +49,16 @@ export default class Ship extends Phaser.GameObjects.Sprite {
       const ey = path[i + 1].y
       tweens.push({
         targets: this,
-        x: { value: ex * this.map.tileWidth, duration: 100 },
-        y: { value: ey * this.map.tileHeight, duration: 100 },
+        x: { value: ex * this.map.tileWidth, duration: 300 },
+        y: { value: ey * this.map.tileHeight, duration: 300 },
       })
     }
 
     this.scene.tweens.timeline({
       tweens: tweens,
-      onComplete: () => this.destroy(),
+      onComplete: () => {
+        this.destroy()
+      },
     })
   }
 }
